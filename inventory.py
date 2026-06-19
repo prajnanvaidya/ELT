@@ -4,12 +4,11 @@ bronze_inventory.filter(
     (col("reorder_level") > col("stock_quantity"))
 ).count()
 
-bronze_inventory.filter(
-    (col("safety_stock") > col("reorder_level"))
-    |
-    (col("reorder_level") > col("stock_quantity"))
-).count()
-
+print(
+    bronze_inventory.count()
+    -
+    bronze_inventory.dropDuplicates().count()
+)
 
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
