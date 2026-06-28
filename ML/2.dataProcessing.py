@@ -252,3 +252,16 @@ display(
         f"{CATALOG}.{ML_SCHEMA}.customer_spend_test"
     )
 )
+
+
+cell 15:
+(
+    preprocessing_model
+    .write()
+    .overwrite()
+    .save(
+        f"/Volumes/{CATALOG}/{ML_SCHEMA}/preprocessing_pipeline"
+    )
+)
+
+
