@@ -153,3 +153,44 @@ mlflow.spark.log_model(
 )
 
 
+
+print("=" * 60)
+
+print("Best Hyperparameters")
+
+print("=" * 60)
+
+print(
+    "Number of Trees :",
+    len(best_rf_model.trees)
+)
+
+print(
+    "Maximum Depth :",
+    best_rf_model.getOrDefault(best_rf_model.maxDepth)
+)
+
+print(
+    "Maximum Bins :",
+    best_rf_model.getOrDefault(best_rf_model.maxBins)
+)
+
+print("=" * 60)
+
+
+
+
+mlflow.log_param(
+    "numTrees",
+    len(best_rf_model.trees)
+)
+
+mlflow.log_param(
+    "maxDepth",
+    best_rf_model.getOrDefault(best_rf_model.maxDepth)
+)
+
+mlflow.log_param(
+    "maxBins",
+    best_rf_model.getOrDefault(best_rf_model.maxBins)
+)
