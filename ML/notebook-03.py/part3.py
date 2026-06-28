@@ -182,6 +182,16 @@ mlflow.log_param(
     lr.getElasticNetParam()
 )
 
+mlflow.log_param(
+    "Training Rows",
+    train_df.count()
+)
+
+mlflow.log_param(
+    "Testing Rows",
+    test_df.count()
+)
+
 
 
 cell-18
@@ -201,6 +211,15 @@ mlflow.log_param(
     dt.getMaxBins()
 )
 
+mlflow.log_param(
+    "Training Rows",
+    train_df.count()
+)
+
+mlflow.log_param(
+    "Testing Rows",
+    test_df.count()
+)
 
 
 cell-24
@@ -225,6 +244,16 @@ mlflow.log_param(
     rf.getMaxBins()
 )
 
+mlflow.log_param(
+    "Training Rows",
+    train_df.count()
+)
+
+mlflow.log_param(
+    "Testing Rows",
+    test_df.count()
+)
+
 
 cell-30
 
@@ -246,6 +275,16 @@ mlflow.log_param(
 mlflow.log_param(
     "maxBins",
     gbt.getMaxBins()
+)
+
+mlflow.log_param(
+    "Training Rows",
+    train_df.count()
+)
+
+mlflow.log_param(
+    "Testing Rows",
+    test_df.count()
 )
 
 
