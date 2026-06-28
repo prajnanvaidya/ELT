@@ -227,3 +227,13 @@ display(
     )
 
 )
+
+
+after cell3:
+MLFLOW_TMP_DIR = "/Volumes/retailmart/ml_db/mlflow_artifacts"
+
+mlflow.spark.log_model(
+    spark_model=lr_model,
+    artifact_path="model",
+    dfs_tmpdir=MLFLOW_TMP_DIR
+)
