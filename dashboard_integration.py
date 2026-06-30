@@ -142,3 +142,29 @@ distribution_df = (
 )
 
 ------------------------------
+
+(
+    distribution_df
+    .write
+    .format("delta")
+    .mode("overwrite")
+    .saveAsTable(
+
+        f"{CATALOG}.{ML_SCHEMA}.customer_spend_prediction_distribution"
+
+    )
+)
+
+-------------------------------
+
+display(
+
+    spark.table(
+
+        f"{CATALOG}.{ML_SCHEMA}.customer_spend_prediction_distribution"
+
+    )
+
+)
+
+------------------------------------
