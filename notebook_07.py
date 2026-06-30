@@ -130,3 +130,94 @@ print("=" * 60)
 
 ----------------------------------
 
+with mlflow.start_run(run_name="Model Monitoring"):
+
+    mlflow.set_tag(
+        "project",
+        "RetailMart"
+    )
+
+    mlflow.set_tag(
+        "pipeline_stage",
+        "Monitoring"
+    )
+
+    mlflow.set_tag(
+        "registered_model",
+        "customer_spend_prediction_rf"
+    )
+
+    mlflow.log_metric(
+        "Prediction_Count",
+        prediction_count
+    )
+
+    mlflow.log_metric(
+        "MAE",
+        mae
+    )
+
+    mlflow.log_metric(
+        "RMSE",
+        rmse
+    )
+
+    mlflow.log_metric(
+        "R2",
+        r2
+    )
+
+    mlflow.log_param(
+        "Model_Status",
+        model_status
+    )
+
+    monitoring_run_id = mlflow.active_run().info.run_id
+
+print("Monitoring Run ID :", monitoring_run_id)
+
+-------------------------
+
+monitoring_df = spark.createDataFrame(
+    [
+        (
+            prediction_count,
+            mae,
+            rmse,
+            r2,
+            model_status
+        )
+    ],
+    schema=[
+        "prediction_count",
+        "mae",
+        "rmse",
+        "r2",
+        "model_status"
+    ]
+).withColumn(
+    "monitoring_timestamp",
+    current_timestamp()
+)
+
+-------------------
+
+monitoring_df.write \
+    .format("delta") \
+    .mode("append") \
+    .saveAsTable(
+        MONITORING_TABLE
+    )
+
+------------------
+
+display(
+    spark.table(
+        MONITORING_TABLE
+    ).orderBy(
+        "monitoring_timestamp",
+        ascending=False
+    )
+)
+
+----------------
