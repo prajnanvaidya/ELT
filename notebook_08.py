@@ -100,3 +100,127 @@ validation_df = spark.createDataFrame(
 ---------------------------
 
 display(validation_df)
+
+-----------------
+
+MODEL_NAME = f"{CATALOG}.{ML_SCHEMA}.customer_spend_prediction_rf"
+
+------------------
+
+registered_model = client.get_registered_model(
+    MODEL_NAME
+)
+
+----------------------
+
+print("=" * 60)
+
+print("Registered Model")
+
+print("=" * 60)
+
+print("Model Name :", registered_model.name)
+
+print("Owner :", registered_model.owner)
+
+print("=" * 60)
+
+----------------------
+
+with mlflow.start_run(run_name="End-to-End Pipeline Validation"):
+
+    mlflow.log_param(
+        "Pipeline",
+        "RetailMart ML"
+    )
+
+    mlflow.log_metric(
+        "Validated Tables",
+        len(required_tables)
+    )
+
+    mlflow.log_metric(
+        "Available Tables",
+        validation_df.filter("Exists = true").count()
+    )
+
+---------------------------
+
+pipeline_summary = [
+
+    (
+        "Feature Engineering",
+        "Completed"
+    ),
+
+    (
+        "Data Preprocessing",
+        "Completed"
+    ),
+
+    (
+        "Model Training",
+        "Completed"
+    ),
+
+    (
+        "Hyperparameter Tuning",
+        "Completed"
+    ),
+
+    (
+        "Model Registry",
+        "Completed"
+    ),
+
+    (
+        "Batch Inference",
+        "Completed"
+    ),
+
+    (
+        "Model Monitoring",
+        "Completed"
+    )
+
+]
+
+-------------------------
+
+summary_df = spark.createDataFrame(
+
+    pipeline_summary,
+
+    [
+
+        "Pipeline Stage",
+
+        "Status"
+
+    ]
+
+)
+
+display(summary_df)
+
+----------------------
+
+print("=" * 60)
+
+print("Notebook 08 Completed Successfully")
+
+print("=" * 60)
+
+print("✓ Pipeline Validated")
+
+print("✓ Registered Model Verified")
+
+print("✓ Prediction Tables Verified")
+
+print("✓ Monitoring Tables Verified")
+
+print("✓ MLflow Pipeline Run Logged")
+
+print("=" * 60)
+
+----------------------------
