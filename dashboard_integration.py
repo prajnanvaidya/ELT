@@ -301,3 +301,85 @@ display(
 
 ----------------------------
 
+summary_df = prediction_df.agg(
+
+    F.count("*").alias("total_customers"),
+
+    F.avg("prediction").alias("average_prediction"),
+
+    F.max("prediction").alias("highest_prediction"),
+
+    F.min("prediction").alias("lowest_prediction")
+
+)
+
+------------------------------
+
+summary_df.write \
+    .format("delta") \
+    .mode("overwrite") \
+    .saveAsTable(
+        f"{CATALOG}.{ML_SCHEMA}.customer_prediction_summary"
+    )
+
+------------------------------
+
+display(
+
+    spark.table(
+
+        f"{CATALOG}.{ML_SCHEMA}.customer_prediction_summary"
+
+    )
+
+)
+
+-----------------------------
+
+dashboard_tables = [
+
+    "customer_spend_predictions",
+
+    "customer_prediction_summary",
+
+    "customer_spend_prediction_distribution",
+
+    "customer_spend_loyalty_summary",
+
+    "customer_spend_top_customers"
+
+]
+
+dashboard_df = spark.createDataFrame(
+
+    [(table,) for table in dashboard_tables],
+
+    ["Dashboard Table"]
+
+)
+
+----------------------------------
+
+display(dashboard_df)
+
+-------------------------
+
+print("=" * 60)
+
+print("Notebook 09 Completed Successfully")
+
+print("=" * 60)
+
+print("✓ Dashboard Tables Created")
+
+print("✓ Prediction Summary Created")
+
+print("✓ Distribution Table Created")
+
+print("✓ Loyalty Summary Created")
+
+print("✓ Top Customers Table Created")
+
+print("✓ Ready for Databricks SQL Dashboard")
+
+print("=" * 60)
