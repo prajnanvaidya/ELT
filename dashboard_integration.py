@@ -383,3 +383,48 @@ print("✓ Top Customers Table Created")
 print("✓ Ready for Databricks SQL Dashboard")
 
 print("=" * 60)
+
+---------------------------
+
+dashboard_kpi_df = (
+
+    prediction_df.alias("p")
+
+    .join(
+
+        spark.table(
+
+            f"{CATALOG}.{ML_SCHEMA}.customer_features_ml"
+
+        ).alias("f"),
+
+        "customer_id",
+
+        "left"
+
+    )
+
+    .withColumn(
+
+        "prediction_band",
+
+        F.when(F.col("prediction") < 25000, "<25K")
+
+        .when(F.col("prediction") < 50000, "25K-50K")
+
+        .when(F.col("prediction") < 100000, "50K-100K")
+
+        .otherwise("100K+")
+
+    )
+
+)
+
+(
+    dashboard_kpi_df.write
+    .format("delta")
+    .mode("overwrite")
+    .saveAsTable(
+        f"{CATALOG}.{ML_SCHEMA}.customer_spend_dashboard_kpi"
+    )
+)
