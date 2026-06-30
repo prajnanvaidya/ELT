@@ -1,60 +1,4 @@
-if mlflow.active_run():
-    mlflow.end_run()
-
-with mlflow.start_run(run_name="Tuned Random Forest"):
-
-    mlflow.log_param(
-        "Model",
-        "Random Forest (Tuned)"
-    )
-
-    mlflow.log_param(
-        "numTrees",
-        len(best_rf_model.trees)
-    )
-
-    mlflow.log_param(
-        "maxDepth",
-        best_rf_model.getOrDefault(best_rf_model.maxDepth)
-    )
-
-    mlflow.log_param(
-        "maxBins",
-        best_rf_model.getOrDefault(best_rf_model.maxBins)
-    )
-
-    mlflow.log_param(
-        "numFolds",
-        3
-    )
-
-    mlflow.log_param(
-        "Grid Size",
-        len(param_grid)
-    )
-
-    mlflow.log_metric(
-        "RMSE",
-        tuned_rmse
-    )
-
-    mlflow.log_metric(
-        "MAE",
-        tuned_mae
-    )
-
-    mlflow.log_metric(
-        "R2",
-        tuned_r2
-    )
-
-    mlflow.spark.log_model(
-        spark_model=best_rf_model,
-        artifact_path="model",
-        dfs_tmpdir=MLFLOW_TMP_DIR
-    )
-
--------------
+27.-----------------------------
 
 tuned_model_df = spark.createDataFrame(
 
@@ -100,13 +44,13 @@ tuned_model_df = spark.createDataFrame(
 
 )
 
--------------
+28.-------------
 
 display(
     tuned_model_df
 )
 
-------------
+29.------------
 
 tuned_model_df.write \
     .format("delta") \
@@ -117,7 +61,7 @@ tuned_model_df.write \
 
     )
 
---------
+30.--------
 
 display(
 
@@ -129,7 +73,7 @@ display(
 
 )
 
--------
+31.-------
 
 base_rmse = spark.table(
 
@@ -141,7 +85,7 @@ improvement = base_rmse - tuned_rmse
 
 improvement_percent = (improvement / base_rmse) * 100
 
----------
+32.---------
 
 print("=" * 60)
 
@@ -159,7 +103,7 @@ print(f"Improvement (%)      : {improvement_percent:.2f}%")
 
 print("=" * 60)
 
----------
+33.---------
 
 print("=" * 60)
 
@@ -176,3 +120,5 @@ print("✓ MLflow Logged")
 print("✓ Delta Tables Updated")
 
 print("=" * 60)
+
+end.----------------------

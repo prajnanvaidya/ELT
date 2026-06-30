@@ -1,3 +1,4 @@
+1.--------------------
 # RetailMart ML
 
 ## Notebook 04 - Hyperparameter Tuning
@@ -19,7 +20,11 @@ This notebook performs:
 • Track experiment using MLflow
 • Save Tuned Model
 
-----------------
+2.----------------
+
+from mlflow.models.signature import infer_signature
+
+3.----------------
 
 import mlflow
 
@@ -35,7 +40,7 @@ from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.sql import functions as F
 
 
-----------------
+4.----------------
 
 
 CATALOG = "retailmart"
@@ -44,47 +49,48 @@ ML_SCHEMA = "ml_db"
 
 MLFLOW_TMP_DIR = "/Volumes/retailmart/ml_db/mlflow_artifacts"
 
+import osos.environ["SPARKML_TEMP_DFS_PATH"] = MLFLOW_TMP_DIR
 
-----------------
+5.----------------
 
 
 train_df = spark.table(
     f"{CATALOG}.{ML_SCHEMA}.customer_spend_train"
 )
 
-----------------
+6.----------------
 
 
 test_df = spark.table(
     f"{CATALOG}.{ML_SCHEMA}.customer_spend_test"
 )
 
-----------------
+7.----------------
 
 display(train_df)
 
 display(test_df)
 
-----------------
+8.----------------
 
 
 print("Training Records :", train_df.count())
 
 print("Testing Records :", test_df.count())
 
-----------------
+9.----------------
 
 baseline_model_df = spark.table(
     f"{CATALOG}.{ML_SCHEMA}.best_customer_spend_model"
 )
 
-----------------
+10.----------------
 
 display(
     baseline_model_df
 )
 
-----------------
+11.----------------
 
 baseline = baseline_model_df.first()
 
@@ -94,7 +100,7 @@ baseline_mae = baseline["MAE"]
 
 baseline_r2 = baseline["R2"]
 
-----------------
+12.----------------
 
 print("=" * 60)
 
@@ -110,7 +116,7 @@ print(f"R²   : {baseline_r2:.4f}")
 
 print("=" * 60)
 
-----------------
+13.----------------
 
 rmse_evaluator = RegressionEvaluator(
 
@@ -142,7 +148,7 @@ r2_evaluator = RegressionEvaluator(
 
 )
 
-----------------
+14.----------------
 
 
 rf = RandomForestRegressor(
@@ -157,7 +163,7 @@ rf = RandomForestRegressor(
 
 )
 
-----------------
+15.----------------
 
 param_grid = (
 
@@ -191,7 +197,7 @@ param_grid = (
 
 )
 
-----------------
+16.----------------
 
 print(
 
@@ -201,7 +207,7 @@ print(
 
 )
 
-----------------
+17.----------------
 
 
 cross_validator = CrossValidator(
@@ -218,5 +224,4 @@ cross_validator = CrossValidator(
 
 )
 
-----------------
 

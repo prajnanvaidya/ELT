@@ -1,20 +1,22 @@
+18.------------
+
 cv_model = cross_validator.fit(train_df)
 
-------------
+19.------------
 
 best_rf_model = cv_model.bestModel
 
-------------
+20.------------
 
 tuned_predictions = best_rf_model.transform(test_df)
 
-------------
+21.------------
 
 display(
     tuned_predictions
 )
 
-------------
+22.------------
 
 tuned_rmse = rmse_evaluator.evaluate(
     tuned_predictions
@@ -28,7 +30,7 @@ tuned_r2 = r2_evaluator.evaluate(
     tuned_predictions
 )
 
-------------
+23.------------
 
 print("=" * 60)
 
@@ -44,7 +46,7 @@ print(f"R²   : {tuned_r2:.4f}")
 
 print("=" * 60)
 
-------------
+24.------------
 
 print("=" * 60)
 
@@ -69,128 +71,104 @@ print(
 
 print("=" * 60)
 
-------------
+25.------------
 
 
 if mlflow.active_run():
     mlflow.end_run()
 
-------------
+26.------------
 
-with mlflow.start_run(
-    run_name="Random Forest Hyperparameter Tuning"
-)
+with mlflow.start_run(run_name="Random Forest Hyperparameter Tuning"):
+    mlflow.set_tag(
+        "model_type",
+        "tuned_random_forest"
+    )
 
-------------
+    mlflow.set_tag(
+        "project",
+        "RetailMart"
+    )
 
-mlflow.log_param(
-    "Model",
-    "Random Forest"
-)
+    mlflow.set_tag(
+        "stage",
+        "production_candidate"
+    )
 
-mlflow.log_param(
-    "numTrees",
-    best_rf_model.getNumTrees()
-)
+    mlflow.log_param(
+        "Model",
+        "Random Forest"
+    )
 
-mlflow.log_param(
-    "maxDepth",
-    best_rf_model.getMaxDepth()
-)
+    mlflow.log_param(
+        "numTrees",
+        best_rf_model.getNumTrees()
+    )
 
-mlflow.log_param(
-    "maxBins",
-    best_rf_model.getMaxBins()
-)
+    mlflow.log_param(
+        "maxDepth",
+        best_rf_model.getOrDefault(best_rf_model.maxDepth)
+    )
 
-mlflow.log_param(
-    "numFolds",
-    3
-)
+    mlflow.log_param(
+        "maxBins",
+        best_rf_model.getOrDefault(best_rf_model.maxBins)
+    )
 
-mlflow.log_param(
-    "Grid Size",
-    len(param_grid)
-)
+    mlflow.log_param(
+        "numFolds",
+        3
+    )
 
-mlflow.log_param(
-    "Training Rows",
-    train_df.count()
-)
+    mlflow.log_param(
+        "Grid Size",
+        len(param_grid)
+    )
 
-mlflow.log_param(
-    "Testing Rows",
-    test_df.count()
-)
+    mlflow.log_metric(
+        "RMSE",
+        tuned_rmse
+    )
 
-------------
+    mlflow.log_metric(
+        "MAE",
+        tuned_mae
+    )
 
-mlflow.log_metric(
-    "RMSE",
-    tuned_rmse
-)
+    mlflow.log_metric(
+        "R2",
+        tuned_r2
+    )
 
-mlflow.log_metric(
-    "MAE",
-    tuned_mae
-)
+    sample_input = train_df.limit(10).toPandas()
 
-mlflow.log_metric(
-    "R2",
-    tuned_r2
-)
+    sample_prediction = (
+        best_rf_model
+        .transform(train_df.limit(10))
+        .select("prediction")
+        .toPandas()
+    )
 
-------------
+    signature = infer_signature(
+        sample_input,
+        sample_prediction
+    )
 
-mlflow.spark.log_model(
+    mlflow.spark.log_model(
 
-    spark_model=best_rf_model,
+        spark_model=best_rf_model,
 
-    artifact_path="model",
+        artifact_path="model",
 
-    dfs_tmpdir=MLFLOW_TMP_DIR
+        signature=signature,
 
-)
+        dfs_tmpdir=MLFLOW_TMP_DIR
 
-
-
-print("=" * 60)
-
-print("Best Hyperparameters")
-
-print("=" * 60)
-
-print(
-    "Number of Trees :",
-    len(best_rf_model.trees)
-)
-
-print(
-    "Maximum Depth :",
-    best_rf_model.getOrDefault(best_rf_model.maxDepth)
-)
-
-print(
-    "Maximum Bins :",
-    best_rf_model.getOrDefault(best_rf_model.maxBins)
-)
-
-print("=" * 60)
+    )
 
 
 
 
-mlflow.log_param(
-    "numTrees",
-    len(best_rf_model.trees)
-)
 
-mlflow.log_param(
-    "maxDepth",
-    best_rf_model.getOrDefault(best_rf_model.maxDepth)
-)
 
-mlflow.log_param(
-    "maxBins",
-    best_rf_model.getOrDefault(best_rf_model.maxBins)
-)
+
