@@ -221,3 +221,54 @@ display(
 )
 
 ----------------
+
+print("=" * 60)
+
+print("RetailMart Model Monitoring Summary")
+
+print("=" * 60)
+
+print(f"Prediction Records : {prediction_count}")
+
+print(f"MAE                : {mae:.2f}")
+
+print(f"RMSE               : {rmse:.2f}")
+
+print(f"R²                 : {r2:.4f}")
+
+print(f"Model Status       : {model_status}")
+
+print("=" * 60)
+
+---------------------
+
+latest_monitoring = (
+    spark.table(MONITORING_TABLE)
+    .orderBy("monitoring_timestamp", ascending=False)
+    .limit(1)
+)
+
+display(latest_monitoring)
+
+--------------------
+
+print("=" * 60)
+
+print("Notebook 07 Completed Successfully")
+
+print("=" * 60)
+
+print("✓ Batch Predictions Monitored")
+
+print("✓ Performance Metrics Calculated")
+
+print("✓ MLflow Monitoring Run Logged")
+
+print("✓ Monitoring History Saved")
+
+print("✓ Delta Monitoring Table Updated")
+
+print("=" * 60)
+
+--------------------
+
