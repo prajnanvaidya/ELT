@@ -168,3 +168,136 @@ display(
 )
 
 ------------------------------------
+
+loyalty_df = (
+
+    spark.table(
+        f"{CATALOG}.{ML_SCHEMA}.customer_features_ml"
+    )
+
+    .select(
+        "customer_id",
+        "loyalty_level"
+    )
+
+)
+
+--------------------------
+
+loyalty_summary = (
+
+    prediction_df
+
+    .join(
+        loyalty_df,
+        "customer_id"
+    )
+
+    .groupBy(
+        "loyalty_level"
+    )
+
+    .agg(
+
+        F.count("*").alias("customers"),
+
+        F.avg("prediction").alias("avg_predicted_spend"),
+
+        F.avg("label").alias("avg_actual_spend")
+
+    )
+
+    .orderBy("loyalty_level")
+
+)
+
+---------------------------
+
+(
+    loyalty_summary
+
+    .write
+
+    .format("delta")
+
+    .mode("overwrite")
+
+    .saveAsTable(
+
+        f"{CATALOG}.{ML_SCHEMA}.customer_spend_loyalty_summary"
+
+    )
+
+)
+
+--------------------------
+
+display(
+
+    spark.table(
+
+        f"{CATALOG}.{ML_SCHEMA}.customer_spend_loyalty_summary"
+
+    )
+
+)
+
+------------------------------
+
+top_customers = (
+
+    prediction_df
+
+    .select(
+
+        "customer_id",
+
+        "prediction",
+
+        "label"
+
+    )
+
+    .orderBy(
+
+        F.desc("prediction")
+
+    )
+
+    .limit(10)
+
+)
+
+------------------------------
+
+(
+    top_customers
+
+    .write
+
+    .format("delta")
+
+    .mode("overwrite")
+
+    .saveAsTable(
+
+        f"{CATALOG}.{ML_SCHEMA}.customer_spend_top_customers"
+
+    )
+
+)
+
+---------------------------------
+
+display(
+
+    spark.table(
+
+        f"{CATALOG}.{ML_SCHEMA}.customer_spend_top_customers"
+
+    )
+
+)
+
+----------------------------
+
