@@ -195,3 +195,152 @@ display(
 
 -----------------
 
+(
+
+    dashboard_df
+
+    .write
+
+    .format("delta")
+
+    .mode("overwrite")
+
+    .saveAsTable(
+
+        OUTPUT_TABLE
+
+    )
+
+)
+
+--------------
+
+display(
+
+    spark.table(
+
+        OUTPUT_TABLE
+
+    )
+
+)
+
+----------
+
+summary_df = (
+
+    dashboard_df
+
+    .agg(
+
+        F.sum(
+
+            "forecast_revenue"
+
+        ).alias(
+
+            "total_forecast_revenue"
+
+        ),
+
+        F.avg(
+
+            "forecast_revenue"
+
+        ).alias(
+
+            "average_forecast_revenue"
+
+        ),
+
+        F.max(
+
+            "forecast_revenue"
+
+        ).alias(
+
+            "highest_forecast_revenue"
+
+        ),
+
+        F.min(
+
+            "forecast_revenue"
+
+        ).alias(
+
+            "lowest_forecast_revenue"
+
+        ),
+
+        F.avg(
+
+            "forecast_growth_percent"
+
+        ).alias(
+
+            "average_growth_percent"
+
+        )
+
+    )
+
+    .withColumn(
+
+        "dashboard_refresh_time",
+
+        F.current_timestamp()
+
+    )
+
+)
+
+---------------
+
+summary_df.write \
+
+    .format("delta") \
+
+    .mode("overwrite") \
+
+    .saveAsTable(
+
+        "retailmart.ml_db.sales_forecast_dashboard_summary"
+
+    )
+
+----------------
+
+display(
+
+    spark.table(
+
+        "retailmart.ml_db.sales_forecast_dashboard_summary"
+
+    )
+
+)
+
+------------------
+
+print("=" * 70)
+
+print("Sales Forecast Dashboard Table Created Successfully")
+
+print("=" * 70)
+
+print()
+
+print(f"Forecast Table  : {OUTPUT_TABLE}")
+
+print("Summary Table   : retailmart.ml_db.sales_forecast_dashboard_summary")
+
+print()
+
+print("Ready for Dashboard")
+
+print("=" * 70)
+
+------------------------
+
+
