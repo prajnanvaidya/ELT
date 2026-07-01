@@ -3,31 +3,25 @@ import numpy as np
 
 from sklearn.linear_model import LinearRegression
 
-from pyspark.sql import functions as F
-
------------------
+---------------
 
 SOURCE_TABLE = "retailmart.ml_db.sales_forecast_features"
 
-FORECAST_TABLE = "retailmart.ml_db.sales_future_forecast"
+OUTPUT_TABLE = "retailmart.ml_db.future_sales_forecast"
 
 FORECAST_MONTHS = 6
 
------------------
+----------------
 
 sales_pd = (
-
     spark.table(SOURCE_TABLE)
-
     .orderBy("forecast_date")
-
     .toPandas()
-
 )
 
 sales_pd.tail()
 
------------------
+-------------------
 
 feature_columns = [
 
@@ -35,21 +29,7 @@ feature_columns = [
 
     "month",
 
-    "monthly_orders",
-
-    "lag_1_revenue",
-
-    "lag_2_revenue",
-
-    "lag_3_revenue",
-
-    "lag_1_orders",
-
-    "rolling_avg_revenue",
-
-    "revenue_growth_pct",
-
-    "quarter"
+    "monthly_orders"
 
 ]
 
@@ -69,7 +49,7 @@ model.fit(
 
 print()
 
-print("="*70)
+print("=" * 70)
 
 print("Forecast Model Ready")
 
@@ -79,168 +59,148 @@ print("Training Rows :", len(sales_pd))
 
 print()
 
-print("="*70)
+print("=" * 70)
 
-------------------
+---------------
 
 history = sales_pd.copy()
 
+last_date = pd.to_datetime(history["forecast_date"].iloc[-1])
+
+last_orders = history["monthly_orders"].iloc[-1]
+
 future_predictions = []
 
-last_row = history.iloc[-1].copy()
-
-last_date = pd.to_datetime(last_row["forecast_date"])
-
--------------------
+------------------
 
 for i in range(FORECAST_MONTHS):
 
-    next_date = last_date + pd.DateOffset(months=1)
+    future_date = last_date + pd.DateOffset(months=i + 1)
 
-    year = next_date.year
+    year = future_date.year
 
-    month = next_date.month
+    month = future_date.month
 
-    quarter = ((month - 1) // 3) + 1
+    # Smooth order growth
+    growth = 1 + np.random.uniform(-0.02, 0.03)
 
-    monthly_orders = last_row["monthly_orders"]
+    last_orders = int(last_orders * growth)
 
-    lag_1_revenue = last_row["monthly_revenue"]
+    X = pd.DataFrame({
 
-    lag_2_revenue = last_row["lag_1_revenue"]
+        "year": [year],
 
-    lag_3_revenue = last_row["lag_2_revenue"]
+        "month": [month],
 
-    lag_1_orders = last_row["monthly_orders"]
-
-    rolling_avg_revenue = (
-
-        lag_1_revenue +
-
-        lag_2_revenue +
-
-        lag_3_revenue
-
-    ) / 3
-
-    revenue_growth_pct = (
-
-        (lag_1_revenue - lag_2_revenue)
-
-        /
-
-        lag_2_revenue
-
-    ) * 100
-
-    feature_df = pd.DataFrame({
-
-        "year":[year],
-
-        "month":[month],
-
-        "monthly_orders":[monthly_orders],
-
-        "lag_1_revenue":[lag_1_revenue],
-
-        "lag_2_revenue":[lag_2_revenue],
-
-        "lag_3_revenue":[lag_3_revenue],
-
-        "lag_1_orders":[lag_1_orders],
-
-        "rolling_avg_revenue":[rolling_avg_revenue],
-
-        "revenue_growth_pct":[revenue_growth_pct],
-
-        "quarter":[quarter]
+        "monthly_orders": [last_orders]
 
     })
 
-    predicted_revenue = model.predict(feature_df)[0]
+    predicted = model.predict(X)[0]
 
-    new_row = {
+    # Safety checks
 
-        "forecast_date":next_date,
+    predicted = max(predicted, 0)
 
-        "year":year,
+    previous = history["monthly_revenue"].iloc[-1]
 
-        "month":month,
+    lower = previous * 0.95
 
-        "monthly_revenue":predicted_revenue,
+    upper = previous * 1.08
 
-        "monthly_orders":monthly_orders,
+    predicted = np.clip(predicted, lower, upper)
 
-        "lag_1_revenue":lag_1_revenue,
+    future_predictions.append({
 
-        "lag_2_revenue":lag_2_revenue,
+        "forecast_date": future_date,
 
-        "lag_3_revenue":lag_3_revenue,
+        "year": year,
 
-        "lag_1_orders":lag_1_orders,
+        "month": month,
 
-        "rolling_avg_revenue":rolling_avg_revenue,
+        "monthly_orders": last_orders,
 
-        "revenue_growth_pct":revenue_growth_pct,
+        "forecast_revenue": round(predicted, 2)
 
-        "quarter":quarter
+    })
 
-    }
+    history.loc[len(history)] = [
 
-    future_predictions.append(new_row)
+        year,
 
-    history = pd.concat(
+        month,
 
-        [
+        predicted,
 
-            history,
+        last_orders,
 
-            pd.DataFrame([new_row])
+        future_date,
 
-        ],
+        np.nan,
 
-        ignore_index=True
+        np.nan,
 
-    )
+        np.nan,
 
-    last_row = history.iloc[-1]
+        np.nan,
 
-    last_date = next_date
+        np.nan,
 
-------------------
+        np.nan,
+
+        np.nan
+
+    ]
+
+---------------------
 
 forecast_pd = pd.DataFrame(future_predictions)
 
 forecast_pd
 
--------------
+----------------------
 
-print()
+forecast_spark = spark.createDataFrame(forecast_pd)
 
-print("="*70)
+forecast_spark.write \
 
-print("Future Forecast Generated")
+    .mode("overwrite") \
 
-print()
+    .format("delta") \
 
-print("Forecast Months :", len(forecast_pd))
-
-print()
-
-print(forecast_pd[
-
-    [
-
-        "forecast_date",
-
-        "monthly_revenue"
-
-    ]
-
-])
-
-print()
-
-print("="*70)
+    .saveAsTable(OUTPUT_TABLE)
 
 -----------------------
+
+display(
+
+    spark.table(
+
+        OUTPUT_TABLE
+
+    )
+
+)
+
+----------------------
+
+print()
+
+print("=" * 70)
+
+print("Future Sales Forecast Completed")
+
+print()
+
+print("Forecast Months :", FORECAST_MONTHS)
+
+print()
+
+print("Output Table :", OUTPUT_TABLE)
+
+print()
+
+print("=" * 70)
+
+---------------------
+
