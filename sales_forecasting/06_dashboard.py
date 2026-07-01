@@ -9,6 +9,94 @@ SOURCE_TABLE = "retailmart.ml_db.future_sales_forecast"
 
 OUTPUT_TABLE = "retailmart.ml_db.sales_forecast_dashboard"
 
+--------------
+
+forecast_df = spark.table(
+
+    SOURCE_TABLE
+
+)
+
+display(forecast_df)
+
+----------------
+
+dashboard_df = (
+
+    forecast_df
+
+    .withColumn(
+
+        "month_name",
+
+        F.date_format(
+
+            "forecast_date",
+
+            "MMMM"
+
+        )
+
+    )
+
+    .withColumn(
+
+        "forecast_year",
+
+        F.year(
+
+            "forecast_date"
+
+        )
+
+    )
+
+    .withColumn(
+
+        "forecast_quarter",
+
+        F.concat(
+
+            F.lit("Q"),
+
+            F.quarter(
+
+                "forecast_date"
+
+            )
+
+        )
+
+    )
+
+    .withColumn(
+
+        "forecast_label",
+
+        F.concat_ws(
+
+            " ",
+
+            F.date_format(
+
+                "forecast_date",
+
+                "MMM"
+
+            ),
+
+            F.year(
+
+                "forecast_date"
+
+            )
+
+        )
+
+    )
+
+)
+
 -----------------
 
 window_spec = Window.orderBy(
