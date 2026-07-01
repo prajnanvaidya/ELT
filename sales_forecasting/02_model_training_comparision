@@ -1,0 +1,330 @@
+from pyspark.sql import functions as F
+
+import pandas as pd
+import numpy as np
+
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import GradientBoostingRegressor
+
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_squared_error,
+    r2_score
+)
+
+--------------------------
+
+CATALOG = "retailmart"
+
+ML_SCHEMA = "ml_db"
+
+FEATURE_TABLE = f"{CATALOG}.{ML_SCHEMA}.sales_forecast_features"
+
+RESULT_TABLE = f"{CATALOG}.{ML_SCHEMA}.sales_forecast_model_comparison"
+
+---------------------
+
+sales_df = spark.table(FEATURE_TABLE)
+
+display(sales_df)
+
+-----------------
+
+sales_pd = (
+
+    sales_df
+
+    .orderBy("forecast_date")
+
+    .toPandas()
+
+)
+
+----------------
+
+feature_columns = [
+
+    "year",
+
+    "month",
+
+    "monthly_orders",
+
+    "lag_1_revenue",
+
+    "lag_2_revenue",
+
+    "lag_3_revenue",
+
+    "lag_1_orders",
+
+    "rolling_avg_revenue",
+
+    "revenue_growth_pct",
+
+    "quarter"
+
+]
+
+target_column = "monthly_revenue"
+
+------------------------
+
+X = sales_pd[feature_columns]
+
+y = sales_pd[target_column]
+
+------------------
+
+split_index = int(len(sales_pd) * 0.80)
+
+X_train = X.iloc[:split_index]
+
+X_test = X.iloc[split_index:]
+
+y_train = y.iloc[:split_index]
+
+y_test = y.iloc[split_index:]
+
+------------------------
+
+print()
+
+print("="*70)
+
+print("Training Rows :", len(X_train))
+
+print("Testing Rows  :", len(X_test))
+
+print()
+
+print("Training Period")
+
+print(
+
+    sales_pd.iloc[:split_index][
+
+        ["forecast_date","monthly_revenue"]
+
+    ]
+
+)
+
+print()
+
+print("Testing Period")
+
+print(
+
+    sales_pd.iloc[split_index:][
+
+        ["forecast_date","monthly_revenue"]
+
+    ]
+
+)
+
+print("="*70)
+
+------------------------
+
+models = {
+
+    "Linear Regression":
+
+        LinearRegression(),
+
+    "Decision Tree":
+
+        DecisionTreeRegressor(
+
+            random_state=42
+
+        ),
+
+    "Random Forest":
+
+        RandomForestRegressor(
+
+            random_state=42,
+
+            n_estimators=100
+
+        ),
+
+    "Gradient Boosting":
+
+        GradientBoostingRegressor(
+
+            random_state=42
+
+        )
+
+}
+
+---------------------
+
+results = []
+
+trained_models = {}
+
+for model_name, model in models.items():
+
+    model.fit(
+
+        X_train,
+
+        y_train
+
+    )
+
+    prediction = model.predict(X_test)
+
+    mae = mean_absolute_error(
+
+        y_test,
+
+        prediction
+
+    )
+
+    rmse = np.sqrt(
+
+        mean_squared_error(
+
+            y_test,
+
+            prediction
+
+        )
+
+    )
+
+    r2 = r2_score(
+
+        y_test,
+
+        prediction
+
+    )
+
+    mape = np.mean(
+
+        np.abs(
+
+            (y_test - prediction)
+
+            / y_test
+
+        )
+
+    ) * 100
+
+    trained_models[model_name] = model
+
+    results.append(
+
+        (
+
+            model_name,
+
+            mae,
+
+            rmse,
+
+            r2,
+
+            mape
+
+        )
+
+    )
+
+------------------
+
+comparison_df = pd.DataFrame(
+
+    results,
+
+    columns=[
+
+        "model",
+
+        "mae",
+
+        "rmse",
+
+        "r2_score",
+
+        "mape"
+
+    ]
+
+)
+
+comparison_df
+
+-------------------
+
+comparison_df = comparison_df.sort_values(
+
+    by="rmse"
+
+).reset_index(
+
+    drop=True
+
+)
+
+comparison_df
+
+----------------
+
+spark.createDataFrame(
+
+    comparison_df
+
+).write\
+
+.mode(
+
+    "overwrite"
+
+).saveAsTable(
+
+    RESULT_TABLE
+
+)
+
+---------------------
+
+display(
+
+    spark.table(
+
+        RESULT_TABLE
+
+    )
+
+)
+
+----------------------
+
+best_model = comparison_df.iloc[0]["model"]
+
+print()
+
+print("="*70)
+
+print("Best Sales Forecast Model")
+
+print()
+
+print(best_model)
+
+print("="*70)
+
+------------------
+
