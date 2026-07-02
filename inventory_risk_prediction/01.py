@@ -385,3 +385,43 @@ display(feature_df.limit(20))
 
 ----------------------
 
+
+
+
+
+
+
+
+
+feature_df = feature_df.select(
+
+    col("i.inventory_id").alias("inventory_id"),
+
+    col("i.product_id").alias("product_id"),
+
+    col("i.store_id").alias("store_id"),
+
+    col("i.stock_quantity").alias("stock_quantity"),
+
+    col("i.reorder_level").alias("reorder_level"),
+
+    col("i.safety_stock").alias("safety_stock"),
+
+    col("i.last_updated").alias("last_updated"),
+
+    col("p.product_name").alias("product_name"),
+
+    col("p.category").alias("category"),
+
+    col("p.brand").alias("brand"),
+
+    col("s.store_name").alias("store_name"),
+
+    col("s.city").alias("city"),
+
+    col("s.state").alias("state")
+
+)
+
+
+--------------------------
