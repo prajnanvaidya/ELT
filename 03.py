@@ -57,6 +57,46 @@ display(
 
 )
 
+----------------------
+
+from pyspark.ml.feature import VectorAssembler
+
+assembler = VectorAssembler(
+
+    inputCols=[
+
+        "stock_quantity",
+
+        "reorder_level",
+
+        "safety_stock",
+
+        "stock_gap",
+
+        "stock_to_reorder_ratio",
+
+        "inventory_buffer",
+
+        "safety_stock_ratio",
+
+        "days_since_update",
+
+        "category_index",
+
+        "brand_index",
+
+        "city_index",
+
+        "state_index"
+
+    ],
+
+    outputCol="features"
+
+)
+
+feature_df = assembler.transform(feature_df)
+
 -----------------------
 
 predictions.select(
