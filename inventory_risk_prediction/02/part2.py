@@ -174,3 +174,34 @@ display(
 
 -----------------
 
+comparison_df = spark.createDataFrame(
+
+    [
+
+        ("Logistic Regression", float(lr_accuracy)),
+
+        ("Decision Tree", float(dt_accuracy)),
+
+        ("Random Forest", float(rf_accuracy))
+
+    ],
+
+    [
+
+        "model_name",
+
+        "accuracy"
+
+    ]
+
+)
+
+display(
+
+    comparison_df.orderBy(
+
+        F.desc("accuracy")
+
+    )
+
+)
