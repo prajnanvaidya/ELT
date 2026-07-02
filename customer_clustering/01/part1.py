@@ -139,3 +139,118 @@ customer_df.printSchema()
 
 -------------------
 
+city_indexer = StringIndexer(
+
+    inputCol="city",
+
+    outputCol="city_index",
+
+    handleInvalid="keep"
+
+)
+
+customer_df = city_indexer.fit(customer_df).transform(customer_df)
+
+---------------------------
+
+state_indexer = StringIndexer(
+
+    inputCol="state",
+
+    outputCol="state_index",
+
+    handleInvalid="keep"
+
+)
+
+customer_df = state_indexer.fit(customer_df).transform(customer_df)
+
+--------------------------------
+
+display(customer_df)
+
+-------------------------------
+
+assembler = VectorAssembler(
+
+    inputCols=[
+
+        "total_orders",
+
+        "total_spend",
+
+        "purchase_frequency",
+
+        "repeat_customer_count",
+
+        "avg_customer_spend",
+
+        "spend_per_order"
+
+    ],
+
+    outputCol="raw_features"
+
+)
+
+customer_df = assembler.transform(customer_df)
+
+-------------------------
+
+scaler = StandardScaler(
+
+    inputCol="raw_features",
+
+    outputCol="features",
+
+    withStd=True,
+
+    withMean=True
+
+)
+
+scaler_model = scaler.fit(customer_df)
+
+customer_df = scaler_model.transform(customer_df)
+
+---------------------------
+
+customer_cluster_features = customer_df.select(
+
+    "customer_id",
+
+    "customer_name",
+
+    "city",
+
+    "state",
+
+    "city_index",
+
+    "state_index",
+
+    "total_orders",
+
+    "total_spend",
+
+    "purchase_frequency",
+
+    "repeat_customer_count",
+
+    "avg_customer_spend",
+
+    "spend_per_order",
+
+    "features"
+
+)
+
+------------------------------
+
+display(customer_cluster_features)
+
+------------------------
+
+customer_cluster_features.printSchema()
+
+--------------------------
